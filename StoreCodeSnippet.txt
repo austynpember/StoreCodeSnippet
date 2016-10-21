@@ -1,0 +1,64 @@
+﻿foreach (GameAvatarImage ownedSeal in ownedSealColorImages)
+           {
+               List<GameAvatarImage> colors = GameAvatarManager.GetGameImagesByGameImageID(ownedSeal.GameImage.ID).Where(x => x.GameImage.GameSealImageType == SealImageType.Base || x.GameImage.GameSealImageType == SealImageType.Color).ToList();
+               if (colors.Count() != 0)
+               {
+                   // Create a Seal carousel
+                   itemImageStringBuilder.Append(string.Format("<div class=\"item {0}\">", initial == true ? "active" : string.Empty));
+                   itemImageStringBuilder.Append("<div class='col-xs-2'>");
+                   itemImageStringBuilder.Append(string.Format("<div class='thumbnail img-normalized-border {0}'>", initial == true ? "item-selected-border" : string.Empty));
+                   itemImageStringBuilder.Append(string.Format("<img src=\"/Resources/GameImages/Seal/{2}\" draggable=\"false\" data-id=\"Seal{0}\" data-type=\"{1}\" class=\"thumbnail seal-img {3}\" onclick=\"showdiv('colorCarousel{0}'); makeSealSelected('Seal{0}')\">", ownedSeal.ID, (int)GameStoreItemTypes.ChangeColor, ownedSeal.GameImage.Filename, ownedSeal.Flipped ? "flipped-img" : string.Empty));
+                   itemImageStringBuilder.Append("</div>");
+                   itemImageStringBuilder.Append("</div>");
+                   itemImageStringBuilder.Append("</div>");
+
+                   // Create a carousel of different colors for each Seal
+                   StringBuilder colorCarouselStringBuilder = new StringBuilder();
+                   colorCarouselStringBuilder.Append(string.Format("<div id=\"colorCarousel{0}\" class=\"carousel-inner\" style=\"{1}\">", ownedSeal.ID, initial == true ? string.Empty : "display: none;"));
+
+                   StringBuilder itemColorImageStringBuilder = new StringBuilder();
+                   foreach (GameAvatarImage color in colors)
+                   {
+                       // If the color is owned
+                       if (ownedSeal.GameImage.ID == color.GameImage.ID)
+                       {
+                           // Create color but greyed out
+                           itemColorImageStringBuilder.Append(string.Format("<div class=\"item {0}\">", initial == true ? "active" : string.Empty));
+                           itemColorImageStringBuilder.Append(string.Format("<div class='col-xs-2' onclick=\"makeColorSelected('Color{0}'); showPreview(this.children[0].children[0]); updateCost(true, {1});\">", color.GameImage.ID, (int)GameStoreItemTypes.ChangeColor));
+                           itemColorImageStringBuilder.Append("<div class='thumbnail img-normalized-border'>");
+                           itemColorImageStringBuilder.Append(string.Format("<img src=\"/Resources/GameImages/Seal/{2}\" disabled=\"true\" draggable=\"false\" style=\"opacity:0.5\" data-id=\"Color{0}\" data-type=\"{1}\" id=\"{0}\" class=\"thumbnail color-img currentItem {3}\" />", color.GameImage.ID, (int)GameStoreItemTypes.ChangeColor, color.GameImage.Filename, ownedSeal.Flipped ? "flipped-img" : string.Empty));
+                           itemColorImageStringBuilder.Append(string.Format("<p class='currently-owned-color'><strong>{0}</strong></p>", StringResources.Current));
+                           itemColorImageStringBuilder.Append("</div>");
+                           itemColorImageStringBuilder.Append("</div>");
+                           itemColorImageStringBuilder.Append("</div>");
+                       }
+                       else
+                       {
+                           // Create each color in the color carousel
+                           itemColorImageStringBuilder.Append(string.Format("<div class=\"item {0}\">", initial == true ? "active" : string.Empty));
+                           itemColorImageStringBuilder.Append("<div class='col-xs-2'>");
+                           itemColorImageStringBuilder.Append("<div class='thumbnail img-normalized-border'>");
+                           itemColorImageStringBuilder.Append(string.Format("<img src=\"/Resources/GameImages/Seal/{2}\" draggable=\"false\" data-id=\"Color{0}\" id=\"{0}\" data-type=\"{1}\" data-avatarimageid=\"{3}\" class=\"thumbnail color-img {4}\" onclick=\"makeColorSelected('Color{0}'); showPreview(this); updateCost(false, {1});\">", color.GameImage.ID, (int)GameStoreItemTypes.ChangeColor, color.GameImage.Filename, ownedSeal.ID, ownedSeal.Flipped ? "flipped-img" : string.Empty));
+                           itemColorImageStringBuilder.Append("</div>");
+                           itemColorImageStringBuilder.Append("</div>");
+                           itemColorImageStringBuilder.Append("</div>");
+                       }
+
+                       initial = false;
+
+                       if (itemColorImageStringBuilder.Length == 0)
+                       {
+                           itemColorImageStringBuilder.Append("<div>" + StringResources.YouDontHaveColorsForSeal + "</div>");
+                       }
+                   }
+
+                   initial = false;
+
+                   colorCarouselStringBuilder.Append(itemColorImageStringBuilder.ToString());
+                   colorCarouselStringBuilder.Append("</div>");
+                   this.carouselColorPicker.InnerHtml += colorCarouselStringBuilder.ToString();
+               }
+           }
+
+           this.sealsPanel.InnerHtml += itemImageStringBuilder.ToString();
+       }
